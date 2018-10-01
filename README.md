@@ -1,7 +1,4 @@
 # tcl_webserver
-A small easy and handy webserver
-
-# tcl_webserver
 
 A small easy and handy webserver
 
