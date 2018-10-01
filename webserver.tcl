@@ -1,5 +1,4 @@
 package require Tk
-package require BWidget
 
 set root "c:/html"
 set default "index.html"
@@ -68,35 +67,80 @@ proc readIt {socketChannel addr} {
   set gotLine [gets $socketChannel]
   if { [fblocked $socketChannel] } then {return}
   fileevent $socketChannel readable ""
-  set shortName "/"
-  regexp {/[^ ]*} $gotLine shortName
+  
+  set shortName ""
+  set method ""
+  set params ""
+  set protocol ""
+  
+  regexp {[^\s]+} $gotLine method ;#Everything till the first space = method
+  if {$method != ""} {
+	set gotLine [regsub "$method " $gotLine ""] ;#Subtract method from gotLIne
+  }
+  regexp {[^\s]+} $gotLine url ;#Now everything till the first space is the url
+  regexp {\s(.*)} $gotLine protocol ;#And everything after the first space is the protocol
+  set protocol [string trim $protocol] ;#Delete the first space of the protocol
+  regexp {(^.*)(?=\?)} $url shortName ;#Everything in the url before the first ? is the file name
+  if {$shortName == ""} {
+     set shortName  $url
+  }
+  regexp {\?(.*)$} $url params ;#Everything in the url before the first ? is the file name
+  set params [string trim $params "?"] ;#Delete the ?
+  
+  if {$params != ""} {
+	foreach string [split $params {"&"}] {
+		set a 0;
+		foreach n [split $string {"="}] {
+			if {$a == 0} {
+				set key $n;
+			} else {
+				set value $n;
+			}
+			set a [expr {$a + 1}]
+		}
+		set myArray($key) $value
+	}
+  }
+   
+  set a 1
+  
   set many [string length $shortName]
   set last [string index $shortName [expr {$many-1}] ]
   if {$last=="/"} then {set shortName $shortName$default }
   set wholeName $root$shortName
-
-  puts "[clock format $systemTime -format %H:%M:%S] $addr"
+  
+  puts "\n[clock format $systemTime -format %H:%M:%S] $addr $shortName"
+  puts "Path     : $shortName"
+  puts "Protocol : $protocol"
+  puts "Method   : $method"
+  if {$params != ""} {
+    puts "Parameter: "
+	foreach {key value} [array get myArray] {
+			puts "          $key => $value";
+	}
+  }
+  
   upvar lb_count lb_count
   .lb insert $lb_count "[clock format $systemTime -format %H:%M:%S] $addr $wholeName"
+  set lb_count [expr {$lb_count + 1}] 
   
   if {[catch {set fileChannel [open $wholeName RDONLY] } ]} {
     puts $socketChannel "HTTP/1.0 404 Not found"
     puts $socketChannel ""
-    puts $socketChannel "<html><head><title><No such URL.></title></head>"
+    puts $socketChannel "<html><head><title>Error 404</title></head>"
     puts $socketChannel "<body><center>"
-    puts $socketChannel "The URL you requested does not exist on this site."
+    puts $socketChannel "The URL you requested does not exist on this site"
     puts $socketChannel "</center></body></html>"
     close $socketChannel
-	.lb itemconfigure $lb_count -foreground orange
+	.lb itemconfigure [expr {$lb_count - 1}] -foreground orange
   } else {
     fconfigure $fileChannel -translation binary
     fconfigure $socketChannel -translation binary -buffering full
     puts $socketChannel "HTTP/1.0 200 OK"
     puts $socketChannel ""
     fcopy $fileChannel $socketChannel -command [list done $fileChannel $socketChannel]
-	.lb itemconfigure $lb_count -foreground green
+	.lb itemconfigure [expr {$lb_count - 1}] -foreground green
   }
-   set lb_count [expr {$lb_count + 1}] 
 }
 
 proc done {inChan outChan args} {
