@@ -1,4 +1,8 @@
 package require Tk
+<<<<<<< HEAD
+=======
+
+>>>>>>> 32a79d69fc2a40b5c9d56fc545faf672e92b44e7
 
 set root "c:/html"
 set default "index.html"
