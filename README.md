@@ -1,6 +1,10 @@
 # tcl_webserver
 
 A small easy and handy webserver
+Just select the directory you want to use, set the port you want to open and start the server.
+You can now reach it under 127.0.0.1:{PORT} or localhost:{PORT}
+
+Other people can acess it with {YOUR IP}:{PORT}
 
 ## v.2.0
 
