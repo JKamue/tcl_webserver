@@ -6,6 +6,16 @@ You can now reach it under 127.0.0.1:{PORT} or localhost:{PORT}
 
 Other people can acess it with {YOUR IP}:{PORT}
 
+If you run the .tcl file as a console application you will be able to see the following information for each request.
+* IP
+* Time
+* Path
+* Protocol
+* Mathod
+* Parameter
+
+!It is not working if you start the .exe as a console application!
+
 ## v.2.0
 
 * Server is able to read
